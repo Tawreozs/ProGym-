@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ProGym Professional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #050506; color: #ffffff; margin: 0; overscroll-behavior-y: contain; -webkit-tap-highlight-color: transparent; }
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .tab-active { color: white !important; }
+        .tab-active::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 3px; height: 3px; background: currentColor; border-radius: 50%; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-fade { animation: fadeIn 0.15s ease-out forwards; }
+        .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.2, 1, 0.3, 1) forwards; }
+        .safe-pb { padding-bottom: env(safe-area-inset-bottom, 24px); }
+        .timer-progress { transition: width 1s linear; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^18.2.0",
+    "react-dom": "https://esm.sh/react-dom@^18.2.0",
+    "react/": "https://esm.sh/react@^19.2.3/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div id="root"></div>
+    <script>
+        const html = htm.bind(React.createElement);
+
+        const DEFAULT_DB = [
+            { id: 1, name: 'Приседания со штангой', cat: 'ноги', type: 'S' },
+            { id: 2, name: 'Жим ногами в тренажёре', cat: 'ноги', type: 'S' },
+            { id: 3, name: 'Выпады с гантелями / штангой', cat: 'ноги', type: 'S' },
+            { id: 4, name: 'Сгибание ног лёжа (бицепс бедра)', cat: 'ноги', type: 'S' },
+            { id: 5, name: 'Разгибание ног в тренажёре', cat: 'ноги', type: 'S' },
+            { id: 6, name: 'Ягодичный мост / Hip Thrust', cat: 'ягодицы', type: 'S' },
+            { id: 7, name: 'Приседания (сумо)', cat: 'ягодицы', type: 'S' },
+            { id: 8, name: 'Выпады назад', cat: 'ягодицы', type: 'S' },
+            { id: 9, name: 'Отведения ноги в кроссовере', cat: 'ягодицы', type: 'S' },
+            { id: 10, name: 'Гиперэкстензия (ягодицы)', cat: 'ягодицы', type: 'S' },
+            { id: 11, name: 'Подтягивания / Тяга верхнего блока', cat: 'спина', type: 'S' },
+            { id: 12, name: 'Тяга штанги в наклоне', cat: 'спина', type: 'S' },
+            { id: 13, name: 'Тяга горизонтального блока', cat: 'спина', type: 'S' },
+            { id: 14, name: 'Становая тяга', cat: 'спина', type: 'S' },
+            { id: 15, name: 'Тяга гантели одной рукой', cat: 'спина', type: 'S' },
+            { id: 16, name: 'Жим штанги лёжа', cat: 'грудь', type: 'S' },
+            { id: 17, name: 'Жим гантелей лёжа', cat: 'грудь', type: 'S' },
+            { id: 18, name: 'Жим на наклонной скамье', cat: 'грудь', type: 'S' },
+            { id: 19, name: 'Сведения рук (бабочка)', cat: 'грудь', type: 'S' },
+            { id: 20, name: 'Отжимания на брусьях (грудь)', cat: 'грудь', type: 'S' },
+            { id: 21, name: 'Жим штанги/гантелей вверх', cat: 'плечи', type: 'S' },
+            { id: 22, name: 'Разведения гантелей в стороны', cat: 'плечи', type: 'S' },
+            { id: 23, name: 'Разведения в наклоне (задняя дельта)', cat: 'плечи', type: 'S' },
+            { id: 24, name: 'Тяга штанги к подбородку', cat: 'плечи', type: 'S' },
+            { id: 25, name: 'Жим в Смите', cat: 'плечи', type: 'S' },
+            { id: 26, name: 'Подъём штанги на бицепс', cat: 'бицепс', type: 'S' },
+            { id: 27, name: 'Подъём гантелей стоя', cat: 'бицепс', type: 'S' },
+            { id: 28, name: 'Бицепс на наклонной скамье', cat: 'бицепс', type: 'S' },
+            { id: 29, name: 'Молотковые сгибания', cat: 'бицепс', type: 'S' },
+            { id: 30, name: 'Подъём штанги EZ', cat: 'бицепс', type: 'S' },
+            { id: 31, name: 'Жим узким хватом', cat: 'трицепс', type: 'S' },
+            { id: 32, name: 'Разгибания рук на блоке', cat: 'трицепс', type: 'S' },
+            { id: 33, name: 'Французский жим', cat: 'трицепс', type: 'S' },
+            { id: 34, name: 'Отжимания на брусьях (трицепс)', cat: 'трицепс', type: 'S' },
+            { id: 35, name: 'Разгибание гантели из-за головы', cat: 'трицепс', type: 'S' },
+            { id: 36, name: 'Скручивания на полу / скамье', cat: 'пресс', type: 'S' },
+            { id: 37, name: 'Подъёмы ног в висе', cat: 'пресс', type: 'S' },
+            { id: 38, name: 'Подъёмы ног лёжа', cat: 'пресс', type: 'S' },
+            { id: 39, name: 'Планка', cat: 'пресс', type: 'S' },
+            { id: 40, name: 'Скручивания в кроссовере', cat: 'пресс', type: 'S' },
+            { id: 41, name: 'Подъёмы на носки стоя', cat: 'икры', type: 'S' },
+            { id: 42, name: 'Подъёмы на носки сидя', cat: 'икры', type: 'S' },
+            { id: 43, name: 'Подъёмы в тренажёре для икр', cat: 'икры', type: 'S' },
+            { id: 44, name: 'Беговая дорожка', cat: 'кардио', type: 'C' },
+            { id: 45, name: 'Эллиптический тренажер', cat: 'кардио', type: 'C' },
+            { id: 46, name: 'Велотренажер', cat: 'кардио', type: 'C' },
+            { id: 47, name: 'Растяжка ног', cat: 'растяжка', type: 'S' },
+            { id: 48, name: 'Растяжка спины', cat: 'растяжка', type: 'S' },
+            { id: 49, name: 'Растяжка грудных мышц', cat: 'растяжка', type: 'S' }
+        ];
+
+        const App = () => {
+            const [activeTab, setActiveTab] = React.useState('build'); 
+            const [blocks, setBlocks] = React.useState([]);
+            const [exerciseDb, setExerciseDb] = React.useState(() => JSON.parse(localStorage.getItem('gym_db_v8') || JSON.stringify(DEFAULT_DB)));
+            const [workoutHistory, setWorkoutHistory] = React.useState(() => JSON.parse(localStorage.getItem('gym_history_v8') || '[]'));
+            const [config, setConfig] = React.useState(() => JSON.parse(localStorage.getItem('gym_config_v8') || '{"color":"violet","scale":0.95,"timerEnabled":true,"defaultRest":90}'));
+            const [picker, setPicker] = React.useState(null); 
+            const [search, setSearch] = React.useState('');
+            const [activeFilter, setActiveFilter] = React.useState('все');
+            const [confirmFinish, setConfirmFinish] = React.useState(false);
+            const [timer, setTimer] = React.useState({ active: false, seconds: 0, initial: 0 });
+            const [editingExercise, setEditingExercise] = React.useState(null);
+
+            React.useEffect(() => localStorage.setItem('gym_db_v8', JSON.stringify(exerciseDb)), [exerciseDb]);
+            React.useEffect(() => localStorage.setItem('gym_history_v8', JSON.stringify(workoutHistory)), [workoutHistory]);
+            React.useEffect(() => localStorage.setItem('gym_config_v8', JSON.stringify(config)), [config]);
+
+            React.useEffect(() => {
+                let interval;
+                if (timer.active && timer.seconds > 0) {
+                    interval = setInterval(() => {
+                        setTimer(prev => ({ ...prev, seconds: prev.seconds - 1 }));
+                    }, 1000);
+                } else if (timer.seconds === 0 && timer.active) {
+                    setTimer({ active: false, seconds: 0, initial: 0 });
+                }
+                return () => clearInterval(interval);
+            }, [timer.active, timer.seconds]);
+
+            const accent = config.color || 'violet';
+            const categories = ['все', 'ноги', 'ягодицы', 'спина', 'грудь', 'плечи', 'бицепс', 'трицепс', 'пресс', 'икры', 'кардио', 'растяжка'];
+
+            const getFullPrevData = (exerciseName) => {
+                for (let workout of workoutHistory) {
+                    for (let block of workout.blocks) {
+                        const found = block.exercises.find(e => e.name === exerciseName);
+                        if (found && found.sets && found.sets.length > 0) {
+                            return found.sets.map(s => ({ ...s, done: false }));
+                        }
+                    }
+                }
+                return null;
+            };
+
+            const toggleSetStatus = (blockId, instanceId, setIndex) => {
+                setBlocks(prev => prev.map(b => {
+                    if (b.id !== blockId) return b;
+                    return {
+                        ...b,
+                        exercises: b.exercises.map(ex => {
+                            if (ex.instanceId !== instanceId) return ex;
+                            const isMarkingDone = !ex.sets[setIndex].done;
+                            if (isMarkingDone && config.timerEnabled) {
+                                setTimer({ active: true, seconds: config.defaultRest, initial: config.defaultRest });
+                            } else {
+                                setTimer({ active: false, seconds: 0, initial: 0 });
+                            }
+                            return { ...ex, sets: ex.sets.map((s, si) => si === setIndex ? { ...s, done: !s.done } : s) };
+                        })
+                    };
+                }));
+            };
+
+            const completeExercise = (blockId, instanceId) => {
+                setBlocks(prev => prev.map(b => b.id === blockId ? {
+                    ...b, exercises: b.exercises.map(ex => {
+                        if (ex.instanceId !== instanceId) return ex;
+                        const hasDoneSets = ex.sets.some(s => s.done);
+                        if (!hasDoneSets) return ex;
+                        return { ...ex, collapsed: true };
+                    })
+                } : b));
+            };
+
+            const updateSet = (blockId, instanceId, setIndex, field, value) => {
+                setBlocks(prev => prev.map(b => b.id === blockId ? {
+                    ...b, exercises: b.exercises.map(ex => ex.instanceId === instanceId ? { ...ex, sets: ex.sets.map((s, si) => si === setIndex ? { ...s, [field]: value } : s) } : ex)
+                } : b));
+            };
+
+            const finishWorkout = () => {
+                if (blocks.length === 0) return;
+                const newEntry = {
+                    id: Date.now(),
+                    date: new Date().toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+                    blocks: JSON.parse(JSON.stringify(blocks))
+                };
+                setWorkoutHistory(prev => [newEntry, ...prev]);
+                setBlocks([]);
+                setActiveTab('history');
+                setConfirmFinish(false);
+                setTimer({ active: false, seconds: 0, initial: 0 });
+            };
+
+            const saveExercise = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const ex = {
+                    id: editingExercise.id || Date.now(),
+                    name: formData.get('name'),
+                    cat: formData.get('cat'),
+                    type: formData.get('type')
+                };
+                if (editingExercise.id) {
+                    setExerciseDb(exerciseDb.map(item => item.id === ex.id ? ex : item));
+                } else {
+                    setExerciseDb([...exerciseDb, ex]);
+                }
+                setEditingExercise(null);
+            };
+
+            const renderBuild = () => html`
+                <div className="space-y-6 pb-40 animate-fade">
+                    <div className="grid grid-cols-3 gap-3">
+                        ${['РАЗМИНКА', 'ОСНОВА', 'ЗАМИНКА'].map(t => html`
+                            <button key=${t} onClick=${() => setBlocks([...blocks, { id: Date.now(), type: t, exercises: [] }])} 
+                                className=${`px-1 py-6 border-2 rounded-2xl text-[10px] font-black uppercase italic tracking-tighter transition-all ${blocks.some(b => b.type === t) ? 'bg-zinc-900/50 border-zinc-800 opacity-40' : 'bg-zinc-900 border-zinc-800 hover:border-violet-500 active:scale-95'}`}>
+                                ${blocks.some(b => b.type === t) ? '✓ ' : '+ '}${t}
+                            </button>
+                        `)}
+                    </div>
+                    ${blocks.map(block => html`
+                        <div key=${block.id} className="bg-zinc-900/40 border-2 border-zinc-800 rounded-3xl overflow-hidden">
+                            <div className="px-5 py-4 flex justify-between items-center bg-zinc-800/20 border-b border-zinc-800/30">
+                                <h2 className=${`text-[11px] font-black uppercase italic text-${accent}-500 tracking-widest`}>${block.type}</h2>
+                                <div className="flex gap-4">
+                                    <button onClick=${() => setPicker({blockId: block.id, type: block.type})} className=${`text-[9px] font-black uppercase text-white bg-${accent}-600 px-4 py-1.5 rounded-lg border-b-2 border-${accent}-800 active:scale-95`}>+ УПР</button>
+                                    <button onClick=${() => setBlocks(blocks.filter(b => b.id !== block.id))} className="text-zinc-700">✕</button>
+                                </div>
+                            </div>
+                            <div className="p-4 space-y-4">
+                                ${block.exercises.map(ex => {
+                                    const canFinish = ex.sets.some(s => s.done);
+                                    return html`
+                                    <div key=${ex.instanceId} className=${`rounded-2xl p-4 border-2 bg-zinc-800 transition-all ${ex.collapsed ? 'border-emerald-900/30 opacity-60' : 'border-zinc-700/40'}`}>
+                                        <div className="flex justify-between items-center mb-4">
+                                            <div onClick=${() => setBlocks(blocks.map(b => b.id === block.id ? {...b, exercises: b.exercises.map(e => e.instanceId === ex.instanceId ? {...e, collapsed: !e.collapsed} : e)} : b))} className="flex-1 cursor-pointer">
+                                                <div className="font-black uppercase italic text-sm tracking-tight">${ex.name} ${ex.collapsed && '✓'}</div>
+                                                <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-1 italic">${ex.cat}</div>
+                                            </div>
+                                            <button onClick=${() => setBlocks(blocks.map(b => b.id === block.id ? {...b, exercises: b.exercises.filter(e => e.instanceId !== ex.instanceId)} : b))} className="text-zinc-600 ml-4 hover:text-red-500">✕</button>
+                                        </div>
+                                        ${!ex.collapsed && html`
+                                            <div className="space-y-3">
+                                                ${ex.sets.map((set, si) => html`
+                                                    <div key=${si} className=${`flex gap-2 items-center p-1.5 rounded-xl border-2 transition-all ${set.done ? 'bg-emerald-950/20 border-emerald-900/20' : 'border-zinc-800/50'}`}>
+                                                        <button onClick=${() => toggleSetStatus(block.id, ex.instanceId, si)} className=${`w-8 h-8 rounded-lg border-2 flex flex-shrink-0 items-center justify-center ${set.done ? 'bg-emerald-500 border-emerald-500' : 'bg-zinc-900/50 border-zinc-700'}`}>
+                                                            ${set.done && html`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4"><path d="M20 6L9 17l-5-5"/></svg>`}
+                                                        </button>
+                                                        <div className="flex-1 grid grid-cols-3 gap-2">
+                                                            ${ex.type === 'S' ? html`
+                                                                <input type="number" disabled=${set.done} value=${set.reps} onChange=${e => updateSet(block.id, ex.instanceId, si, 'reps', e.target.value)} className="bg-black/40 py-1.5 rounded-lg text-center text-xs font-black outline-none" />
+                                                                <div className="col-span-2 bg-black/40 py-1.5 rounded-lg text-center text-xs font-black border border-zinc-800/50 flex items-center justify-center">
+                                                                    <input type="number" disabled=${set.done} value=${set.weight} onChange=${e => updateSet(block.id, ex.instanceId, si, 'weight', e.target.value)} className="bg-transparent w-full text-center outline-none" /> <span className="text-[7px] text-zinc-600 mr-2 uppercase">Kg</span>
+                                                                </div>
+                                                            ` : html`
+                                                                <input type="number" disabled=${set.done} value=${set.time} onChange=${e => updateSet(block.id, ex.instanceId, si, 'time', e.target.value)} className="bg-black/40 py-1.5 rounded-lg text-center text-xs font-black outline-none" />
+                                                                <input type="number" disabled=${set.done} value=${set.speed} onChange=${e => updateSet(block.id, ex.instanceId, si, 'speed', e.target.value)} className="bg-black/40 py-1.5 rounded-lg text-center text-xs font-black outline-none" />
+                                                                <input type="number" disabled=${set.done} value=${set.incline} onChange=${e => updateSet(block.id, ex.instanceId, si, 'incline', e.target.value)} className="bg-black/40 py-1.5 rounded-lg text-center text-xs font-black outline-none" />
+                                                            `}
+                                                        </div>
+                                                    </div>
+                                                `)}
+                                                <div className="flex gap-2 pt-2">
+                                                    <button onClick=${() => setBlocks(prev => prev.map(b => b.id === block.id ? {...b, exercises: b.exercises.map(e => e.instanceId === ex.instanceId ? {...e, sets: [...e.sets, { ...e.sets[e.sets.length-1], done: false }]} : e)} : b))} className="flex-1 py-3 text-[9px] font-black text-zinc-500 uppercase border-2 border-dashed border-zinc-800 rounded-xl hover:border-zinc-600">+ ПОДХОД</button>
+                                                    <button onClick=${() => completeExercise(block.id, ex.instanceId)} disabled=${!canFinish} className=${`flex-1 py-3 text-[9px] font-black uppercase rounded-xl border-2 transition-all ${canFinish ? `border-${accent}-500/30 text-${accent}-400 bg-${accent}-500/5 active:scale-95` : 'border-zinc-800 text-zinc-700 opacity-50 cursor-not-allowed'}`}>ЗАВЕРШИТЬ УПР.</button>
+                                                </div>
+                                            </div>
+                                        `}
+                                    </div>
+                                `;})}
+                            </div>
+                        </div>
+                    `)}
+                </div>
+            `;
+
+            return html`
+                <div className="min-h-screen px-4 py-6 select-none pb-40" style=${{ fontSize: `${config.scale}rem` }}>
+                    <header className="mb-8 flex justify-between items-end px-1 relative z-[201]">
+                        <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">PRO<span className=${`text-${accent}-500`}>GYM</span></h1>
+                        ${activeTab === 'build' && blocks.length > 0 && html`
+                            <div className="flex items-center gap-2">
+                                ${confirmFinish ? html`
+                                    <div className="flex gap-2 animate-fade">
+                                        <button onClick=${() => setConfirmFinish(false)} className="px-4 py-2 bg-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-tight">Нет</button>
+                                        <button onClick=${finishWorkout} className=${`px-4 py-2 bg-${accent}-600 rounded-xl text-[10px] font-black uppercase text-white shadow-xl shadow-${accent}-500/20 active:scale-95 tracking-tight`}>Да, ФИНИШ</button>
+                                    </div>
+                                ` : html`
+                                    <button onClick=${() => setConfirmFinish(true)} className=${`bg-${accent}-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase italic tracking-tighter active:scale-95 shadow-lg shadow-${accent}-500/20`}>
+                                        ЗАВЕРШИТЬ ТРЕНИРОВКУ
+                                    </button>
+                                `}
+                            </div>
+                        `}
+                    </header>
+
+                    ${activeTab === 'build' ? renderBuild() : 
+                      activeTab === 'history' ? html`
+                        <div className="space-y-6 animate-fade pb-32">
+                            <h2 className="text-2xl font-black italic uppercase tracking-tighter">История</h2>
+                            ${workoutHistory.length === 0 ? html`<div className="text-center py-20 text-zinc-700 font-black uppercase italic tracking-widest text-xs">История пуста</div>` :
+                              workoutHistory.map(w => html`
+                                <div key=${w.id} className="bg-zinc-900 border-2 border-zinc-800 p-6 rounded-3xl space-y-4 shadow-lg">
+                                    <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+                                        <span className="text-[10px] font-black uppercase text-zinc-500">${w.date}</span>
+                                        <button onClick=${() => setWorkoutHistory(workoutHistory.filter(h => h.id !== w.id))} className="text-zinc-700 text-[10px] font-black uppercase hover:text-red-500">Удалить</button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        ${w.blocks.map(b => b.exercises.map(e => html`
+                                            <div key=${e.instanceId} className="border-l-2 border-zinc-700 pl-4 py-1">
+                                                <div className="text-xs font-black uppercase text-zinc-100">${e.name}</div>
+                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                    ${e.sets.map((s, idx) => html`<span key=${idx} className="text-[8px] font-black text-zinc-400 bg-black/40 px-2 py-1 rounded-md border border-zinc-800/50">${e.type === 'S' ? `${s.reps}x${s.weight}кг` : `${s.time}м`}</span>`)}
+                                                </div>
+                                            </div>
+                                        `))}
+                                    </div>
+                                </div>
+                            `)}
+                        </div>
+                      ` : 
+                      activeTab === 'database' ? html`
+                        <div className="space-y-8 animate-fade pb-32">
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-2xl font-black italic uppercase tracking-tighter">Каталог</h2>
+                                <button onClick=${() => setEditingExercise({})} className=${`bg-${accent}-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-lg active:scale-95`}>+ ДОБАВИТЬ</button>
+                            </div>
+                            <div className="grid grid-cols-4 gap-2">
+                                ${categories.map(c => html`<button key=${c} onClick=${() => setActiveFilter(c)} className=${`px-1.5 py-2 rounded-lg text-[7px] font-black uppercase border-2 transition-all ${activeFilter === c ? `bg-${accent}-500 border-white text-white` : 'bg-zinc-900 border-zinc-800 text-zinc-600'}`}>${c}</button>`)}
+                            </div>
+                            <div className="grid gap-3">
+                                ${exerciseDb.filter(ex => activeFilter === 'все' || ex.cat === activeFilter).map(ex => html`
+                                    <div key=${ex.id} className="bg-zinc-900 p-5 rounded-2xl border-2 border-zinc-800 flex justify-between items-center group">
+                                        <div>
+                                            <div className="font-black uppercase italic text-sm tracking-tight">${ex.name}</div>
+                                            <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mt-1 italic">${ex.cat}</div>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <button onClick=${() => setEditingExercise(ex)} className="text-zinc-600 hover:text-white transition-colors p-2">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            </button>
+                                            <button onClick=${() => setExerciseDb(exerciseDb.filter(i => i.id !== ex.id))} className="text-zinc-600 hover:text-red-500 transition-colors p-2">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `)}
+                            </div>
+                        </div>
+                      ` : 
+                      html`
+                        <div className="space-y-10 animate-fade pb-32">
+                            <h2 className="text-2xl font-black italic uppercase tracking-tighter">Настройки</h2>
+                            <div className="bg-zinc-900 p-8 rounded-[32px] border-2 border-zinc-800 space-y-10">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[11px] font-black uppercase text-zinc-500 tracking-widest">Авто-таймер отдыха</span>
+                                    <button onClick=${() => setConfig({...config, timerEnabled: !config.timerEnabled})} className=${`w-12 h-6 rounded-full relative transition-all ${config.timerEnabled ? `bg-${accent}-500` : 'bg-zinc-800'}`}>
+                                        <div className=${`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config.timerEnabled ? 'left-7' : 'left-1'}`}></div>
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center"><span className="text-[11px] font-black uppercase text-zinc-500 tracking-widest">Время отдыха</span> <span className=${`font-black text-${accent}-400`}>${config.defaultRest}s</span></div>
+                                    <input type="range" min="30" max="300" step="15" value=${config.defaultRest} onChange=${e => setConfig({...config, defaultRest: parseInt(e.target.value)})} className="w-full h-2 bg-zinc-800 rounded-full appearance-none accent-violet-500" />
+                                </div>
+                                <div className="space-y-4">
+                                    <span className="text-[11px] font-black uppercase text-zinc-500 block tracking-widest">Тема</span>
+                                    <div className="flex gap-6">
+                                        <button onClick=${() => setConfig({...config, color:'violet'})} className=${`w-14 h-14 rounded-2xl bg-violet-600 border-2 ${config.color==='violet'?'border-white':'border-transparent'}`}></button>
+                                        <button onClick=${() => setConfig({...config, color:'emerald'})} className=${`w-14 h-14 rounded-2xl bg-emerald-600 border-2 ${config.color==='emerald'?'border-white':'border-transparent'}`}></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                      `
+                    }
+
+                    ${timer.active && html`
+                        <div className="fixed bottom-28 left-4 right-4 z-[250] animate-slide-up">
+                            <div className="bg-[#111113] border border-zinc-800 rounded-2xl p-2 pl-4 flex items-center justify-between shadow-2xl relative overflow-hidden h-14">
+                                <div className="flex items-center gap-4 flex-1">
+                                    <div className=${`px-2.5 py-1 rounded-lg ${accent==='violet'?'bg-violet-950/40 text-violet-400':'bg-emerald-950/40 text-emerald-400'} flex items-center justify-center`}><span className="text-sm font-black tracking-tighter">${timer.seconds}s</span></div>
+                                    <div className="text-[10px] font-black text-white uppercase italic tracking-widest opacity-90">Отдых</div>
+                                </div>
+                                <button onClick=${() => setTimer({active: false, seconds: 0, initial: 0})} className="px-5 py-2 mr-1 bg-zinc-800/60 rounded-xl text-[9px] font-black uppercase text-zinc-300">SKIP</button>
+                                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-zinc-900"><div className=${`timer-progress h-full ${accent==='violet'?'bg-violet-500':'bg-emerald-500'}`} style=${{ width: `${(timer.seconds/timer.initial)*100}%` }}></div></div>
+                            </div>
+                        </div>
+                    `}
+
+                    <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-2xl border-t-2 border-zinc-800/30 px-8 py-8 flex justify-between items-center z-[200] safe-pb">
+                        <button onClick=${() => setActiveTab('build')} className=${`relative transition-all ${activeTab==='build'?'tab-active text-'+accent+'-500':'text-zinc-700'}`}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
+                        <button onClick=${() => setActiveTab('history')} className=${`relative transition-all ${activeTab==='history'?'tab-active text-'+accent+'-500':'text-zinc-700'}`}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></button>
+                        <button onClick=${() => setActiveTab('database')} className=${`relative transition-all ${activeTab==='database'?'tab-active text-'+accent+'-500':'text-zinc-700'}`}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20M4 19.5V4a2.5 2.5 0 012.5-2.5H20v11l-3-2-3 2V4.5"/></svg></button>
+                        <button onClick=${() => setActiveTab('settings')} className=${`relative transition-all ${activeTab==='settings'?'tab-active text-'+accent+'-500':'text-zinc-700'}`}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+                    </nav>
+
+                    ${editingExercise && html`
+                        <div className="fixed inset-0 z-[400] bg-black/95 flex items-center justify-center p-6 animate-fade">
+                            <form onSubmit=${saveExercise} className="bg-zinc-900 border-2 border-zinc-800 p-8 rounded-3xl w-full max-w-sm space-y-6">
+                                <h3 className="text-xl font-black uppercase italic tracking-tighter">Упражнение</h3>
+                                <input name="name" defaultValue=${editingExercise.name} placeholder="Название" required className="w-full bg-black border-2 border-zinc-800 p-4 rounded-xl text-sm font-bold focus:border-violet-500 outline-none" />
+                                <select name="cat" defaultValue=${editingExercise.cat || 'ноги'} className="w-full bg-black border-2 border-zinc-800 p-4 rounded-xl text-sm font-bold">
+                                    ${categories.filter(c => c !== 'все').map(c => html`<option value=${c}>${c.toUpperCase()}</option>`)}
+                                </select>
+                                <select name="type" defaultValue=${editingExercise.type || 'S'} className="w-full bg-black border-2 border-zinc-800 p-4 rounded-xl text-sm font-bold">
+                                    <option value="S">Силовое (вес/повторы)</option>
+                                    <option value="C">Кардио (время/скорость)</option>
+                                </select>
+                                <div className="flex gap-3 pt-4">
+                                    <button type="button" onClick=${() => setEditingExercise(null)} className="flex-1 py-4 bg-zinc-800 rounded-xl text-[10px] font-black uppercase">Отмена</button>
+                                    <button type="submit" className=${`flex-1 py-4 bg-${accent}-600 rounded-xl text-[10px] font-black uppercase text-white shadow-lg`}>Сохранить</button>
+                                </div>
+                            </form>
+                        </div>
+                    `}
+
+                    ${picker && html`
+                        <div className="fixed inset-0 z-[300] bg-zinc-950 p-6 flex flex-col animate-fade">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className=${`text-2xl font-black italic uppercase text-${accent}-500 tracking-tighter`}>${picker.type}</h3>
+                                <button onClick=${() => {setPicker(null); setSearch(''); setActiveFilter('все');}} className="text-zinc-600 bg-zinc-900 p-4 rounded-2xl border-2 border-zinc-800 shadow-md">✕</button>
+                            </div>
+                            
+                            <input autoFocus placeholder="Найти..." value=${search} onChange=${e => setSearch(e.target.value)} className="w-full bg-zinc-900 border-2 border-zinc-800 p-5 rounded-2xl font-black text-base mb-6 focus:outline-none focus:border-violet-500 shadow-lg" />
+                            
+                            <div className="flex flex-wrap gap-2 mb-6">
+                                ${categories
+                                    .filter(c => {
+                                        if (picker.type === 'РАЗМИНКА') return c === 'кардио';
+                                        if (picker.type === 'ЗАМИНКА') return c === 'кардио' || c === 'растяжка';
+                                        return true;
+                                    })
+                                    .map(c => html`
+                                    <button key=${c} onClick=${() => setActiveFilter(c)} className=${`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase border-2 transition-all ${activeFilter === c ? `bg-${accent}-500 border-white text-white` : 'bg-zinc-900 border-zinc-800 text-zinc-600'}`}>${c}</button>
+                                `)}
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pb-24 pr-1">
+                                ${exerciseDb
+                                    .filter(ex => {
+                                        const ms = ex.name.toLowerCase().includes(search.toLowerCase());
+                                        const mf = activeFilter === 'все' || ex.cat === activeFilter;
+                                        
+                                        // 1. Фильтрация по типам блоков
+                                        if (picker.type === 'РАЗМИНКА') return ms && ex.cat === 'кардио';
+                                        if (picker.type === 'ЗАМИНКА') {
+                                            // В заминке разрешено только кардио и растяжка
+                                            const isLegitCategory = ex.cat === 'кардио' || ex.cat === 'растяжка';
+                                            if (!ms || !isLegitCategory) return false;
+                                            // Если выбран фильтр, проверяем его
+                                            return activeFilter === 'все' || ex.cat === activeFilter;
+                                        }
+                                        // ОСНОВА: всё кроме растяжки
+                                        return ms && mf && ex.cat !== 'растяжка';
+                                    })
+                                    .map(ex => {
+                                        const prevSets = getFullPrevData(ex.name);
+                                        return html`
+                                            <button key=${ex.id} onClick=${() => {
+                                                setBlocks(prevB => prevB.map(b => b.id === picker.blockId ? {
+                                                    ...b, exercises: [...b.exercises, { 
+                                                        instanceId: Math.random(), 
+                                                        ...ex, 
+                                                        sets: prevSets ? prevSets : (ex.type === 'S' ? [{reps:10, weight:0, done: false}] : [{time:5, speed:6, incline: 0, done: false}]),
+                                                        collapsed: false
+                                                    }]
+                                                } : b));
+                                                setPicker(null);
+                                                setActiveFilter('все');
+                                                setSearch('');
+                                            }} className="w-full flex items-center justify-between p-6 bg-zinc-900 border-2 border-zinc-800 rounded-2xl text-left hover:border-zinc-600 transition-all shadow-md active:scale-98">
+                                                <div>
+                                                    <div className="font-black uppercase italic text-sm tracking-tight">${ex.name}</div>
+                                                    <div className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mt-1 italic">${ex.cat}</div>
+                                                    ${prevSets && html`
+                                                        <div className="text-[8px] text-zinc-400 mt-2 uppercase font-black bg-zinc-800/50 inline-block px-2 py-0.5 rounded border border-zinc-700/50">
+                                                            Прошлое: ${prevSets.length} подх.
+                                                        </div>
+                                                    `}
+                                                </div>
+                                            </button>
+                                        `;
+                                    })}
+                            </div>
+                        </div>
+                    `}
+                </div>
+            `;
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
