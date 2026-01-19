@@ -1,9 +1,9 @@
 
 import React, { useState, useMemo } from 'react';
-// Fix: Explicitly add .ts extension to resolve "not a module" error
-import { EXERCISE_DATABASE } from '../constants.ts';
-// Fix: Explicitly add .ts extension to resolve "not a module" error
-import { ExerciseDatabaseItem, ExerciseType, BlockType } from '../types.ts';
+// Fix: Corrected relative path for constants
+import { EXERCISE_DATABASE } from '../constants';
+// Fix: Corrected relative path for types
+import { ExerciseDatabaseItem, ExerciseType, BlockType } from '../types';
 
 interface ExercisePickerProps {
   blockType: BlockType;
