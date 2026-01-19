@@ -1,7 +1,7 @@
 
 import React from 'react';
-// Fix: Use .ts extension or ensure the module resolution matches the file structure
-import { BlockType } from '../types.ts';
+// Fix: Remove .ts extension to correctly resolve the module
+import { BlockType } from '../types';
 
 interface BlockSelectorProps {
   onAddBlock: (type: BlockType) => void;
